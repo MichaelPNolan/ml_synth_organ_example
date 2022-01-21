@@ -51,10 +51,68 @@
 audioKitButtonCb audioKitButtonCallback = NULL;
 #endif
 
+#ifdef ADC_TO_MIDI_ENABLED
+struct adc_to_midi_s adcToMidiLookUp[ADC_TO_MIDI_LOOKUP_SIZE] =
+{
+    {0, 0x0a},
+    {0, 0x0b},
+    {0, 0x0c},
+    {0, 0x0d},
+    {0, 0x0e},
+    {0, 0x0f},
+    {0, 0x10},
+    {0, 0x11},
+};
+
+
+struct adc_to_midi_mapping_s adcToMidiMapping =
+{
+    adcToMidiLookUp,
+    sizeof(adcToMidiLookUp) / sizeof(adcToMidiLookUp[0]),
+    //Midi_ControlChange,
+#ifdef MIDI_VIA_USB_ENABLED
+    UsbMidi_SendControlChange,
+#else
+    Midi_ControlChange,
+#endif
+};
+
+#endif
 /*
  * this mapping is used for the edirol pcr-800
  * this should be changed when using another controller
  */
+  struct midiControllerMapping tunaWorlde[] =
+{
+  #ifdef USE_UNISON
+    { 0x0, 0x0a, "R1", NULL, Organ_SetDrawbarInv, 0}, 
+    { 0x0, 0x0b, "R2", NULL, Organ_SetDrawbarInv, 1},
+#else
+    { 0x0, 0x0a, "R1", NULL, Organ_SetDrawbarInv, 2},  //0x0 - 0x7, 0x10 little tiger toy midi controller  Organ_SetDrawbarInv, SYNTH_PARAM_WAVEFORM_1
+    { 0x0, 0x0b, "R2", NULL, Organ_SetDrawbarInv, 3},  //Organ_SetDrawbarInv, SYNTH_PARAM_WAVEFORM_2
+#endif
+    { 0x0, 0x0c, "R3", NULL, Organ_SetDrawbarInv, 4},                      //Delay_SetLength, 2
+    { 0x0, 0x0d, "R4", NULL, Organ_SetDrawbarInv, 5},                       //Delay_SetLevel, 3    //Delay_SetFeedback, 4
+
+    { 0x0, 0x0e, "R5", NULL, Organ_SetDrawbarInv, 6},
+    { 0x0, 0x0f, "R6", NULL, Organ_SetDrawbarInv, 7},
+    { 0x0, 0x10, "R7", NULL, Organ_SetDrawbarInv, 8},
+    { 0x0, 0x11, "R8", NULL, Organ_SetCtrl, 0},
+    
+    { 0x0, 0x13, "H1", NULL, Organ_SetLeslieSpeedNorm, 0},
+    { 0x0, 0x14, "R9", NULL, Organ_SetCtrl, 1},          //Delay_SetLevel, 3    //Delay_SetFeedback, 4
+    { 0x0, 0x15, "R10", NULL, Organ_SetCtrl, 2},
+    { 0x0, 0x16, "R11", NULL, Organ_SetCtrl, 3},
+
+    { 0x0, 0x17, "R12", NULL, Organ_SetCtrl, 4},
+    { 0x0, 0x18, "R13", NULL, Organ_SetCtrl, 5},
+    { 0x0, 0x19, "R14", NULL, Organ_SetCtrl, 6},
+    { 0x0, 0x1a, "R15", NULL, Organ_SetCtrl, 7 },
+    { 0x0, 0x1b, "R15", NULL, Organ_SetCtrl, 8},
+
+    // Central slider 
+   // { 0x0, 0x13, "H1", NULL, NULL, 0},
+};
 struct midiControllerMapping edirolMapping[] =
 {
     /* general MIDI */
@@ -148,8 +206,8 @@ struct midiMapping_s midiMapping =
     Organ_ModulationWheel,
     NULL,
     NULL,
-    edirolMapping,
-    sizeof(edirolMapping) / sizeof(edirolMapping[0]),
+    tunaWorlde,//edirolMapping,
+    sizeof(tunaWorlde) / sizeof(tunaWorlde[0]),// sizeof(edirolMapping) / sizeof(edirolMapping[0]),
 };
 
 #ifdef MIDI_VIA_USB_ENABLED

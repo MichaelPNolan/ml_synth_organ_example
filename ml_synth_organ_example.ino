@@ -200,19 +200,22 @@ void setup()
 
     Serial.printf("Firmware started successfully\n");
 
-#if 1 /* set this to one to test the audio output with a noteOn event on startup */
+#if 1/* set this to one to test the audio output with a noteOn event on startup */
 #ifdef USE_ML_SYNTH_PRO
     OrganPro_NoteOn(0, 60, 127);
     OrganPro_SetLeslCtrl(127);
 #else
+    Serial.printf("test note\n");
     Organ_NoteOn(0, 60, 127);
     Organ_SetLeslCtrl(127);
     Organ_PercussionSet(CTRL_ROTARY_ACTIVE);
-    Organ_PercussionSet(CTRL_ROTARY_ACTIVE);
+   
 #endif
 #endif
-
-#if (defined MIDI_VIA_USB_ENABLED) || (defined OLED_OSC_DISP_ENABLED)
+   Organ_PercussionSet(CTRL_ROTARY_ACTIVE);
+   Organ_PercussionSet(CTRL_ROTARY_ACTIVE);
+   
+#if (defined ADC_TO_MIDI_ENABLED) ||(defined MIDI_VIA_USB_ENABLED) || (defined OLED_OSC_DISP_ENABLED)
 #ifdef ESP32
     Core0TaskInit();
 #else
@@ -244,9 +247,17 @@ void Core0TaskSetup()
 #ifdef OLED_OSC_DISP_ENABLED
     ScopeOled_Setup();
 #endif
+
+#ifdef ADC_TO_MIDI_ENABLED
+    Serial.println
+    ("adc initialized");
+    AdcMul_Init();
+#endif
+
 #ifdef MIDI_VIA_USB_ENABLED
     UsbMidi_Setup();
 #endif
+
 }
 
 void Core0TaskLoop()
@@ -254,6 +265,10 @@ void Core0TaskLoop()
     /*
      * put your loop stuff for core0 here
      */
+#ifdef ADC_TO_MIDI_ENABLED
+    AdcMul_Process();
+#endif /* ADC_TO_MIDI_ENABLED */
+
 #ifdef MIDI_VIA_USB_ENABLED
     UsbMidi_Loop();
 #endif
@@ -413,6 +428,7 @@ inline void Organ_SetCtrl(uint8_t unused __attribute__((unused)), uint8_t value)
     OrganPro_SetLeslCtrl(value);
 #else
     Organ_SetLeslCtrl(value);
+    //Serial.print("LesCtr: ");
 #endif
 }
 
@@ -518,4 +534,3 @@ void  ScanI2C(void)
     }
 }
 #endif /* (defined ARDUINO_GENERIC_F407VGTX) || (defined ARDUINO_DISCO_F407VG) */
-

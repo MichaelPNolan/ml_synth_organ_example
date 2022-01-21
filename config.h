@@ -45,7 +45,8 @@
 
 #ifndef CONFIG_H_
 #define CONFIG_H_
-
+#define ESP32
+#define ADC_TO_MIDI_ENABLED
 
 #ifdef __CDT_PARSER__
 #include <cdt.h>
@@ -95,12 +96,19 @@ SoftwareSerial Serial2(RXD2, TXD2);
 
 //#define BOARD_ML_V1 /* activate this when using the ML PCB V1 */
 //#define BOARD_ESP32_AUDIO_KIT_AC101 /* activate this when using the ESP32 Audio Kit v2.2 with the AC101 codec */
-#define BOARD_ESP32_AUDIO_KIT_ES8388 /* activate this when using the ESP32 Audio Kit v2.2 with the ES8388 codec */
-//#define BOARD_ESP32_DOIT /* activate this when using the DOIT ESP32 DEVKIT V1 board */
+//#define BOARD_ESP32_AUDIO_KIT_ES8388 /* activate this when using the ESP32 Audio Kit v2.2 with the ES8388 codec */
+#define BOARD_ESP32_DOIT /* activate this when using the DOIT ESP32 DEVKIT V1 board */
 
 //#define INPUT_TO_MIX /* use this to mix the input to the organ signal */
 
 #define LED_PIN     BLINK_LED_PIN
+
+#define ADC_TO_MIDI_LOOKUP_SIZE 8 /* should match ADC_INPUTS */
+#define ADC_INPUTS  8
+#define ADC_MUL_S0_PIN  33
+#define ADC_MUL_S1_PIN  32
+#define ADC_MUL_S2_PIN  13
+#define ADC_MUL_SIG_PIN 12
 
 #define REVERB_ENABLED /* add simple reverb */
 
@@ -125,7 +133,7 @@ SoftwareSerial Serial2(RXD2, TXD2);
 
 /* you can activate the following lines to get an additional MIDI input */
 // MIDI_PORT1_ACTIVE
-// #define MIDI_RX1_PIN 13
+// #define MIDI_RX1_PIN 13  //don't i used this pin for ADC above
 #endif
 
 #define SAMPLE_RATE 44100
@@ -254,4 +262,3 @@ SoftwareSerial Serial2(RXD2, TXD2);
 #endif
 
 #endif /* CONFIG_H_ */
-

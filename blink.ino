@@ -9,7 +9,7 @@
  */
 
 
-#ifdef BLINK_LED_PIN
+#ifdef BLINK_LED_PIN 2
 
 inline
 void Blink_Setup(void)
