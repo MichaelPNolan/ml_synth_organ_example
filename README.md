@@ -1,5 +1,6 @@
 <h1 align="center">ml_synth_organ_example</h1>
 <h3 align="center">MIDI Organ using the ML_SynthTools library (little example arduino project)</h3>  
+<h2 align="center">With ADC controls for package - Trying to stay vanilla (little example arduino project)</h2> 
 <p align="center"> 
   <img src="img/splash.jpg" alt="project picture" width="480px" height="270px"><br>
   <a href="https://youtu.be/9AHQ4mQrjE8">link to the video</a>
