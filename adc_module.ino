@@ -209,7 +209,7 @@ void AdcMul_Process(void)
                         if (adcToMidiMapping.callback != NULL)
                         {
                             adcToMidiMapping.callback(adcToMidiLookUp[idx].ch, adcToMidiLookUp[idx].cc, midiValueU7);
-                            Serial.println(midiValueU7);
+                           // Serial.println(midiValueU7);
                         }
                         // Midi_ControlChange(adcToMidiLookUp[idx].ch, adcToMidiLookUp[idx].cc, midiValueU7);
                         lastSendVal[idx] = midiValueU7;

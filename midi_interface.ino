@@ -182,9 +182,7 @@ inline void Midi_NoteOff(uint8_t ch, uint8_t note)
  */
 inline void Midi_ControlChange(uint8_t channel, uint8_t data1, uint8_t data2)
 {
-    Serial.print(channel);
-    Serial.print(" ");
-    Serial.println(data1);
+    
     for (int i = 0; i < midiMapping.mapSize; i++)
     {
         if ((midiMapping.controlMapping[i].channel == channel) && (midiMapping.controlMapping[i].data1 == data1))

@@ -54,14 +54,14 @@ audioKitButtonCb audioKitButtonCallback = NULL;
 #ifdef ADC_TO_MIDI_ENABLED
 struct adc_to_midi_s adcToMidiLookUp[ADC_TO_MIDI_LOOKUP_SIZE] =
 {
-    {0, 0x0a},
-    {0, 0x0b},
-    {0, 0x0c},
-    {0, 0x0d},
-    {0, 0x0e},
-    {0, 0x0f},
-    {0, 0x10},
-    {0, 0x11},
+    {0, 0x0a}, //3rd "draw"bar
+    {0, 0x0b}, //4th bar
+    {0, 0x0c}, //5th bar
+    {0, 0x0d}, //6th bar
+    {0, 0x0e}, //7th bar
+    {0, 0x0f}, //8th bar
+    {0, 0x10}, //9th bar
+    {0, 0x11}, //Organ_SetCtrl  (there is only one and its the same as Organ_SetLeslieSpeedNorm for now
 };
 
 
@@ -88,23 +88,26 @@ struct adc_to_midi_mapping_s adcToMidiMapping =
     { 0x0, 0x0a, "R1", NULL, Organ_SetDrawbarInv, 0}, 
     { 0x0, 0x0b, "R2", NULL, Organ_SetDrawbarInv, 1},
 #else
-    { 0x0, 0x0a, "R1", NULL, Organ_SetDrawbarInv, 2},  //0x0 - 0x7, 0x10 little tiger toy midi controller  Organ_SetDrawbarInv, SYNTH_PARAM_WAVEFORM_1
-    { 0x0, 0x0b, "R2", NULL, Organ_SetDrawbarInv, 3},  //Organ_SetDrawbarInv, SYNTH_PARAM_WAVEFORM_2
+    { 0x0, 0x0a, "R1", NULL, Organ_SetDrawbarInv, 1},  //0x0 - 0x7, 0x10 little tiger toy midi controller  Organ_SetDrawbarInv, SYNTH_PARAM_WAVEFORM_1
+    { 0x0, 0x0b, "R2", NULL, Organ_SetDrawbarInv, 2},  //Organ_SetDrawbarInv, SYNTH_PARAM_WAVEFORM_2
 #endif
-    { 0x0, 0x0c, "R3", NULL, Organ_SetDrawbarInv, 4},                      //Delay_SetLength, 2
-    { 0x0, 0x0d, "R4", NULL, Organ_SetDrawbarInv, 5},                       //Delay_SetLevel, 3    //Delay_SetFeedback, 4
+    { 0x0, 0x0c, "R3", NULL, Organ_SetDrawbarInv, 3},
+    { 0x0, 0x0d, "R4", NULL, Organ_SetDrawbarInv, 4},                      
+    { 0x0, 0x0e, "R5", NULL, Organ_SetDrawbarInv, 5},                      
 
-    { 0x0, 0x0e, "R5", NULL, Organ_SetDrawbarInv, 6},
-    { 0x0, 0x0f, "R6", NULL, Organ_SetDrawbarInv, 7},
-    { 0x0, 0x10, "R7", NULL, Organ_SetDrawbarInv, 8},
-    { 0x0, 0x11, "R8", NULL, Organ_SetCtrl, 0},
+    { 0x0, 0x0f, "R6", NULL, Organ_SetDrawbarInv, 6},
+    { 0x0, 0x10, "R7", NULL, Organ_SetDrawbarInv, 7},
+    { 0x0, 0x11, "R8", NULL, Organ_SetDrawbarInv, 8},
+    //{ 0x0, 0x11, "R8", NULL, Organ_SetCtrl, 0},
     
-    { 0x0, 0x13, "H1", NULL, Organ_SetLeslieSpeedNorm, 0},
-    { 0x0, 0x14, "R9", NULL, Organ_SetCtrl, 1},          //Delay_SetLevel, 3    //Delay_SetFeedback, 4
-    { 0x0, 0x15, "R10", NULL, Organ_SetCtrl, 2},
-    { 0x0, 0x16, "R11", NULL, Organ_SetCtrl, 3},
+    { 0x0, 0x12, "H1", NULL, Organ_SetDrawbarInv, 0}, 
+    { 0x0, 0x13, "H1", NULL, Organ_SetDrawbarInv, 1},   //Organ_SetLeslieSpeedNorm, 0},
+    { 0x0, 0x14, "R9", NULL, Organ_SetCtrl, 1},          
+        
+    { 0x0, 0x15, "R10", NULL, Reverb_SetLevelInt, 2},
+    { 0x0, 0x16, "R11", NULL, Delay_SetOutputLevelInt, 3},
 
-    { 0x0, 0x17, "R12", NULL, Organ_SetCtrl, 4},
+    { 0x0, 0x17, "R12", NULL, Delay_SetFeedbackInt, 4},
     { 0x0, 0x18, "R13", NULL, Organ_SetCtrl, 5},
     { 0x0, 0x19, "R14", NULL, Organ_SetCtrl, 6},
     { 0x0, 0x1a, "R15", NULL, Organ_SetCtrl, 7 },
@@ -202,7 +205,7 @@ struct midiMapping_s midiMapping =
     Organ_NoteOn,
     Organ_NoteOff,
 #endif
-    NULL,
+    Organ_PercussionViaPitch,
     Organ_ModulationWheel,
     NULL,
     NULL,
