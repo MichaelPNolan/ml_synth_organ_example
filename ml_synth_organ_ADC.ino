@@ -35,6 +35,13 @@
  *
  * @brief   This is the main project file to test the ML_SynthLibrary (organ module)
  *          It should be compatible with ESP32, ESP8266, Seedstudio XIAO, PRJC Teensy 4.1, Electrosmith Daisy Seed, Raspberry Pi Pico, STM32F4
+ *          #define CTRL_PERC_SWITCH    0
+#define CTRL_PERC_SPEED     1
+#define CTRL_PERC_NOTE      2
+#define CTRL_PERC_LOUD      3
+#define CTRL_PERC_POLY      4
+#define CTRL_INTR_FEEDBACK  5
+#define CTRL_ROTARY_ACTIVE  6
  */
 
 
@@ -68,6 +75,8 @@
 #include <Wire.h> /* todo remove, just for scanning */
 #endif
 
+int pitchedOn =  0;
+bool percSwitch = false;
 void blink(uint8_t cnt)
 {
     delay(500);
@@ -92,6 +101,7 @@ void blink_slow(uint8_t cnt)
         delay(100);
     }
 }
+
 
 void setup()
 {
@@ -200,7 +210,7 @@ void setup()
 
     Serial.printf("Firmware started successfully\n");
 
-#if 1/* set this to one to test the audio output with a noteOn event on startup */
+#if 0/* set this to one to test the audio output with a noteOn event on startup */
 #ifdef USE_ML_SYNTH_PRO
     OrganPro_NoteOn(0, 60, 127);
     OrganPro_SetLeslCtrl(127);
@@ -208,12 +218,14 @@ void setup()
     Serial.printf("test note\n");
     Organ_NoteOn(0, 60, 127);
     Organ_SetLeslCtrl(127);
-    Organ_PercussionSet(CTRL_ROTARY_ACTIVE);
    
 #endif
 #endif
    Organ_PercussionSet(CTRL_ROTARY_ACTIVE);
    Organ_PercussionSet(CTRL_ROTARY_ACTIVE);
+   Organ_PercussionSet(CTRL_PERC_SWITCH);
+   Organ_PercussionSet(CTRL_PERC_LOUD);
+   //Organ_PercussionSet(CTRL_PERC_POLY);
    
 #if (defined ADC_TO_MIDI_ENABLED) ||(defined MIDI_VIA_USB_ENABLED) || (defined OLED_OSC_DISP_ENABLED)
 #ifdef ESP32
@@ -448,6 +460,48 @@ inline void Organ_ModulationWheel(uint8_t unused __attribute__((unused)), uint8_
 #else
     Organ_SetLeslCtrl(value);
 #endif
+}
+
+inline void Organ_PercussionViaPitch(uint8_t unused __attribute__((unused)), uint8_t value)
+{
+  if(value == 0){
+    if(pitchedOn>0)
+       pitchedOn--;
+     else 
+       if(pitchedOn<0)
+         pitchedOn++;
+       else
+         percSwitch = false;
+  } else 
+    if(value == 1){
+      pitchedOn++;
+      if(pitchedOn>12){
+        pitchedOn=0;
+        Organ_PercussionSet(CTRL_PERC_SPEED);
+        Serial.println("speed toggle");
+      }
+    } else
+      if(value == 255){
+        pitchedOn--;
+        if(pitchedOn<-12)
+          pitchedOn=0;
+    } else if(value == 254){
+       Organ_PercussionSet(CTRL_INTR_FEEDBACK);
+       Serial.println("feedback toggle");
+    }
+  
+  if(!percSwitch){       
+    if(pitchedOn >2){
+        Organ_PercussionSet(CTRL_PERC_SWITCH);
+        percSwitch = true;
+        Serial.println("perc toggle");
+    }
+    if(pitchedOn < -2){
+        Organ_PercussionSet(CTRL_PERC_LOUD);
+        percSwitch = true;  //this means no more changes until pitch bender returns to mid point
+        Serial.println("loud toggle");
+    }
+  }
 }
 
 inline void Reverb_SetLevelInt(uint8_t unused, uint8_t value)
