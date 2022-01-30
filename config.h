@@ -41,12 +41,16 @@
  * configurations which are requiring knowledge of types etc.
  * shall be placed in z_config.ino (will be included at the end)
  */
-
+// Jan 28 setting up for A1S - damaged board that has es8388 (it seems)
+// #define BOARD_ESP32_AUDIO_KIT_ES8388 activated
+//ADC_TO_MIDI_ENABLED disabled - for now
+// adding #define ES8388_ENABLED
 
 #ifndef CONFIG_H_
 #define CONFIG_H_
 #define ESP32
-#define ADC_TO_MIDI_ENABLED
+#define ESP32_AUDIO_KIT
+//#define ADC_TO_MIDI_ENABLED
 
 #ifdef __CDT_PARSER__
 #include <cdt.h>
@@ -70,7 +74,7 @@
 #ifdef ESP8266
 
 #define SWAP_SERIAL
-#define I2S_NODAC /* RX pin will be used for audio output */
+//#define I2S_NODAC /* RX pin will be used for audio output */
 #define LED_PIN     LED_BUILTIN
 
 #define MIDI_PORT_ACTIVE
@@ -93,22 +97,23 @@ SoftwareSerial Serial2(RXD2, TXD2);
  * Board: "ESP32 Dev Module" or similar
  */
 #ifdef ESP32
-
+#define ES8388_ENABLED
 //#define BOARD_ML_V1 /* activate this when using the ML PCB V1 */
 //#define BOARD_ESP32_AUDIO_KIT_AC101 /* activate this when using the ESP32 Audio Kit v2.2 with the AC101 codec */
-//#define BOARD_ESP32_AUDIO_KIT_ES8388 /* activate this when using the ESP32 Audio Kit v2.2 with the ES8388 codec */
-#define BOARD_ESP32_DOIT /* activate this when using the DOIT ESP32 DEVKIT V1 board */
+#define BOARD_ESP32_AUDIO_KIT_ES8388 /* activate this when using the ESP32 Audio Kit v2.2 with the ES8388 codec */
+//#define BOARD_ESP32_DOIT /* activate this when using the DOIT ESP32 DEVKIT V1 board */
 
 //#define INPUT_TO_MIX /* use this to mix the input to the organ signal */
 
 #define LED_PIN     BLINK_LED_PIN
-
-#define ADC_TO_MIDI_LOOKUP_SIZE 8 /* should match ADC_INPUTS */
+#define MIDI_RX2_PIN 21
+/*
+#define ADC_TO_MIDI_LOOKUP_SIZE 8 // should match ADC_INPUTS 
 #define ADC_INPUTS  8
 #define ADC_MUL_S0_PIN  33
 #define ADC_MUL_S1_PIN  32
 #define ADC_MUL_S2_PIN  13
-#define ADC_MUL_SIG_PIN 12
+#define ADC_MUL_SIG_PIN 12 */
 
 #define REVERB_ENABLED /* add simple reverb */
 

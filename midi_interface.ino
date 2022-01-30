@@ -62,7 +62,7 @@
 #endif
 
 /* use define to dump midi data */
-//#define MIDI_DUMP_SERIAL2_TO_SERIAL
+#define MIDI_DUMP_SERIAL2_TO_SERIAL
 
 
 #if (defined MIDI_RX_PIN) || (defined MIDI_RECV_FROM_SERIAL)
@@ -182,7 +182,9 @@ inline void Midi_NoteOff(uint8_t ch, uint8_t note)
  */
 inline void Midi_ControlChange(uint8_t channel, uint8_t data1, uint8_t data2)
 {
-    
+    Serial.print(channel);
+    Serial.print(" ");
+    Serial.println(data1);
     for (int i = 0; i < midiMapping.mapSize; i++)
     {
         if ((midiMapping.controlMapping[i].channel == channel) && (midiMapping.controlMapping[i].data1 == data1))
@@ -290,6 +292,7 @@ void Midi_Setup()
 {
 #ifdef MIDI_RECV_FROM_SERIAL
     MidiPort.serial = &Serial;
+    Serial.printf("MIDI listen on pin\n",  MIDI_RX2_PIN);
     Serial.printf("MIDI listen on Serial\n", MIDI_SERIAL_BAUDRATE);
 #endif /* MIDI_RECV_FROM_SERIAL */
 

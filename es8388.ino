@@ -14,15 +14,15 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
- * Dieses Programm ist Freie Software: Sie können es unter den Bedingungen
+ * Dieses Programm ist Freie Software: Sie kï¿½nnen es unter den Bedingungen
  * der GNU General Public License, wie von der Free Software Foundation,
  * Version 3 der Lizenz oder (nach Ihrer Wahl) jeder neueren
- * veröffentlichten Version, weiter verteilen und/oder modifizieren.
+ * verï¿½ffentlichten Version, weiter verteilen und/oder modifizieren.
  *
- * Dieses Programm wird in der Hoffnung bereitgestellt, dass es nützlich sein wird, jedoch
- * OHNE JEDE GEWÄHR,; sogar ohne die implizite
- * Gewähr der MARKTFÄHIGKEIT oder EIGNUNG FÜR EINEN BESTIMMTEN ZWECK.
- * Siehe die GNU General Public License für weitere Einzelheiten.
+ * Dieses Programm wird in der Hoffnung bereitgestellt, dass es nï¿½tzlich sein wird, jedoch
+ * OHNE JEDE GEWï¿½HR,; sogar ohne die implizite
+ * Gewï¿½hr der MARKTFï¿½HIGKEIT oder EIGNUNG Fï¿½R EINEN BESTIMMTEN ZWECK.
+ * Siehe die GNU General Public License fï¿½r weitere Einzelheiten.
  *
  * Sie sollten eine Kopie der GNU General Public License zusammen mit diesem
  * Programm erhalten haben. Wenn nicht, siehe <https://www.gnu.org/licenses/>.
@@ -43,7 +43,8 @@
 #ifdef __CDT_PARSER__
 #include <cdt.h>
 #endif
-
+//#define ES8388_CFG_I2C  3
+//#define ES8388_CFG_I2S  4
 
 #ifdef ES8388_ENABLED
 /*
@@ -52,7 +53,8 @@
 
 #include <Wire.h>
 
-
+//#define ES8388_PIN_SDA 33//18  //23,18 now, before 32 scl,33 sda
+//#define ES8388_PIN_SCL 32//23
 /* ES8388 address */
 //#define ES8388_ADDR 0x20  /*!< 0x22:CE=1;0x20:CE=0*/
 #define ES8388_ADDR 0x10  /*!< 0x22:CE=1;0x20:CE=0*/
@@ -379,7 +381,7 @@ void ES8388_SetOUT2VOL(uint8_t unused, float vol)
 void ES8388_Setup()
 {
     Serial.printf("Connect to ES8388 codec... ");
-
+    //scan();
     while (not ES8388_begin(ES8388_PIN_SDA, ES8388_PIN_SCL, 400000))
     {
         Serial.printf("Failed!\n");
@@ -529,3 +531,36 @@ void ES8388_Setup()
 
 #endif
 
+
+void scan() { //spi bus scan for devices
+  byte error, address;
+  int nDevices;
+  Serial.println("Scanning...");
+  nDevices = 0;
+  for(address = 1; address < 127; address++ ) {
+    Wire.beginTransmission(address);
+    error = Wire.endTransmission();
+    if (error == 0) {
+      Serial.print("I2C device found at address 0x");
+      if (address<16) {
+        Serial.print("0");
+      }
+      Serial.println(address,HEX);
+      nDevices++;
+    }
+    else if (error==4) {
+      Serial.print("Unknow error at address 0x");
+      if (address<16) {
+        Serial.print("0");
+      }
+      Serial.println(address,HEX);
+    }    
+  }
+  if (nDevices == 0) {
+    Serial.println("No I2C devices found\n");
+  }
+  else {
+    Serial.println("done\n");
+  }
+  delay(5000);          
+}

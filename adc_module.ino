@@ -55,8 +55,7 @@ uint8_t lastSendVal[ADC_TO_MIDI_LOOKUP_SIZE];  /* define ADC_TO_MIDI_LOOKUP_SIZE
 
 #endif
 
-//#define ADC_DYNAMIC_RANGE
-//#define ADC_DEBUG_CHANNEL0_DATA
+
 
 static float adcChannelValue[ADC_INPUTS];
 
@@ -70,7 +69,7 @@ void AdcMul_Init(void)
     memset(lastSendVal, 0xFF, sizeof(lastSendVal));
 
     analogReadResolution(9);  //was 9 bits
-    analogSetAttenuation(ADC_11db);   //ADC_6db
+    analogSetAttenuation(ADC_6db);   //ADC_6db
 #if 0
     analogSetCycles(1);
 #endif
@@ -99,7 +98,7 @@ void AdcMul_Process(void)
 #ifdef ADC_MCP_CTRL_ENABLED
     static float adcMax = 16350;
 #else
-    static float adcMax = 8192;//410000; 420453  (but for 9 pin resolution ... this worked Jan 2022 Michael implementation
+    static float adcMax = 4096;//8192;//410000; 420453  (but for 9 pin resolution ... this worked Jan 2022 Michael implementation
 #endif
 
 #ifdef ADC_MCP_CTRL_ENABLED
@@ -209,7 +208,7 @@ void AdcMul_Process(void)
                         if (adcToMidiMapping.callback != NULL)
                         {
                             adcToMidiMapping.callback(adcToMidiLookUp[idx].ch, adcToMidiLookUp[idx].cc, midiValueU7);
-                           // Serial.println(midiValueU7);
+                            Serial.println(midiValueU7);
                         }
                         // Midi_ControlChange(adcToMidiLookUp[idx].ch, adcToMidiLookUp[idx].cc, midiValueU7);
                         lastSendVal[idx] = midiValueU7;
