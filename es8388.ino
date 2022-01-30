@@ -39,12 +39,15 @@
  * @see https://github.com/espressif/esp-adf/blob/master/components/audio_hal/driver/es8388/es8388.c
  */
 
-
+/*for for of MichaelPNolan
+ * use #define ES8388_CFG_I2C  2
+       #define ES8388_CFG_I2S  5  //this option was merged into library after tests to get it right for my version of audio kit
+       from file board_audio_kit_es8388.h in the libraries/ML_SynthTools/src/boards location
+ */
 #ifdef __CDT_PARSER__
 #include <cdt.h>
 #endif
-//#define ES8388_CFG_I2C  3
-//#define ES8388_CFG_I2S  4
+
 
 #ifdef ES8388_ENABLED
 /*
