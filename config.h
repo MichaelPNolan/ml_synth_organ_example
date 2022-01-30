@@ -50,6 +50,7 @@
 #define CONFIG_H_
 #define ESP32
 #define ESP32_AUDIO_KIT
+#define ES8388_ENABLED
 //#define ADC_TO_MIDI_ENABLED
 
 #ifdef __CDT_PARSER__
@@ -97,7 +98,7 @@ SoftwareSerial Serial2(RXD2, TXD2);
  * Board: "ESP32 Dev Module" or similar
  */
 #ifdef ESP32
-#define ES8388_ENABLED
+
 //#define BOARD_ML_V1 /* activate this when using the ML PCB V1 */
 //#define BOARD_ESP32_AUDIO_KIT_AC101 /* activate this when using the ESP32 Audio Kit v2.2 with the AC101 codec */
 #define BOARD_ESP32_AUDIO_KIT_ES8388 /* activate this when using the ESP32 Audio Kit v2.2 with the ES8388 codec */

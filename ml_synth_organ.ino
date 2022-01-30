@@ -200,7 +200,7 @@ void setup()
 
     Serial.printf("Firmware started successfully\n");
 
-#if 1/* set this to one to test the audio output with a noteOn event on startup */
+#if 0/* set this to one to test the audio output with a noteOn event on startup */
 #ifdef USE_ML_SYNTH_PRO
     OrganPro_NoteOn(0, 60, 127);
     OrganPro_SetLeslCtrl(127);
