@@ -450,7 +450,7 @@ inline void Organ_ModulationWheel(uint8_t unused __attribute__((unused)), uint8_
 #endif
 }
 
-inline void Reverb_SetLevelInt(uint8_t unused, uint8_t value)
+inline void Reverb_SetLevelInt(uint8_t unused __attribute__((unused)), uint8_t value)
 {
     float val = value;
     val /= 127.0f;
@@ -459,7 +459,7 @@ inline void Reverb_SetLevelInt(uint8_t unused, uint8_t value)
 #endif
 }
 
-inline void Delay_SetOutputLevelInt(uint8_t unused, uint8_t value)
+inline void Delay_SetOutputLevelInt(uint8_t unused __attribute__((unused)), uint8_t value)
 {
     float val = value;
     val /= 127.0f;
@@ -468,7 +468,7 @@ inline void Delay_SetOutputLevelInt(uint8_t unused, uint8_t value)
 #endif
 }
 
-inline void Delay_SetFeedbackInt(uint8_t unused, uint8_t value)
+inline void Delay_SetFeedbackInt(uint8_t unused __attribute__((unused)), uint8_t value)
 {
     float val = value;
     val /= 127.0f;
@@ -488,7 +488,7 @@ void  ScanI2C(void)
     Wire.begin();
 #endif
 
-    byte r_error, address;
+    byte address;
     int nDevices;
 
     Serial.println("Scanning...");
@@ -496,6 +496,7 @@ void  ScanI2C(void)
     nDevices = 0;
     for (address = 1; address < 127; address++)
     {
+        byte r_error;
         // The i2c_scanner uses the return value of
         // the Write.endTransmisstion to see if
         // a device did acknowledge to the address.
