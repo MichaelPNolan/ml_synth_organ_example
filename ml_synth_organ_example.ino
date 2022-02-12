@@ -210,17 +210,18 @@ void setup()
 
     Serial.printf("Firmware started successfully\n");
 
-#if 0/* set this to one to test the audio output with a noteOn event on startup */
+#ifdef NOTE_ON_AFTER_SETUP
 #ifdef USE_ML_SYNTH_PRO
     OrganPro_NoteOn(0, 60, 127);
     OrganPro_SetLeslCtrl(127);
 #else
-    Serial.printf("test note\n");
     Organ_NoteOn(0, 60, 127);
     Organ_SetLeslCtrl(127);
-   
+    Organ_PercussionSet(CTRL_ROTARY_ACTIVE);
+    Organ_PercussionSet(CTRL_ROTARY_ACTIVE);
 #endif
 #endif
+
    Organ_PercussionSet(CTRL_ROTARY_ACTIVE);
    Organ_PercussionSet(CTRL_ROTARY_ACTIVE);
    Organ_PercussionSet(CTRL_PERC_SWITCH);
@@ -504,7 +505,7 @@ inline void Organ_PercussionViaPitch(uint8_t unused __attribute__((unused)), uin
   }
 }
 
-inline void Reverb_SetLevelInt(uint8_t unused, uint8_t value)
+inline void Reverb_SetLevelInt(uint8_t unused __attribute__((unused)), uint8_t value)
 {
     float val = value;
     val /= 127.0f;
