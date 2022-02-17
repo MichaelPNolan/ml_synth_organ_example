@@ -27,6 +27,7 @@
 //#define ADC_MCP_CTRL_ENABLED  //i'm not using
 //#define ADC_DYNAMIC_RANGE
 
+
 #ifdef ADC_TO_MIDI_ENABLED
 
 struct adc_to_midi_s
@@ -44,6 +45,7 @@ struct adc_to_midi_mapping_s
 
 extern struct adc_to_midi_s adcToMidiLookUp[]; /* definition in z_config.ino */
 extern struct adc_to_midi_mapping_s adcToMidiMapping;
+
 
 uint8_t lastSendVal[ADC_TO_MIDI_LOOKUP_SIZE];  /* define ADC_TO_MIDI_LOOKUP_SIZE in top level file */
 //#define ADC_INVERT // inverts the table
@@ -80,16 +82,20 @@ void AdcMul_Init(void)
 
 #ifndef ADC_MCP_CTRL_ENABLED
     pinMode(ADC_MUL_S0_PIN, OUTPUT);
+    Serial.println("ADCpin0: "+String(ADC_MUL_S0_PIN));
 #if ADC_INPUTS > 2
     pinMode(ADC_MUL_S1_PIN, OUTPUT);
+    Serial.println("ADCpin1: "+String(ADC_MUL_S1_PIN));
 #endif
 #if ADC_INPUTS > 4
     pinMode(ADC_MUL_S2_PIN, OUTPUT);
+    Serial.println("ADCpin2: "+String(ADC_MUL_S2_PIN));
 #endif
 #if ADC_INPUTS > 8
     pinMode(ADC_MUL_S3_PIN, OUTPUT);
 #endif
 #endif
+
 }
 
 void AdcMul_Process(void)
@@ -101,6 +107,8 @@ void AdcMul_Process(void)
 #else
     static float adcMax = 8192;//410000; 420453  (but for 9 pin resolution ... this worked Jan 2022 Michael implementation
 #endif
+
+
 
 #ifdef ADC_MCP_CTRL_ENABLED
     MCP23_Select(SPI_SEL_MCP23S17);
@@ -210,6 +218,10 @@ void AdcMul_Process(void)
                         {
                             adcToMidiMapping.callback(adcToMidiLookUp[idx].ch, adcToMidiLookUp[idx].cc, midiValueU7);
                            // Serial.println(midiValueU7);
+                           if(idx==0){
+                             setDigitsColor(midiValueU7/20);
+                             setDigits(midiValueU7);
+                           }
                         }
                         // Midi_ControlChange(adcToMidiLookUp[idx].ch, adcToMidiLookUp[idx].cc, midiValueU7);
                         lastSendVal[idx] = midiValueU7;

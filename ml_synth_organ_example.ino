@@ -55,6 +55,7 @@
 
 #include <Arduino.h>
 
+
 /*
  * Library can be found on https://github.com/marcel-licence/ML_SynthTools
  */
@@ -77,31 +78,7 @@
 
 int pitchedOn =  0;
 bool percSwitch = false;
-void blink(uint8_t cnt)
-{
-    delay(500);
-    for (int i = 0; i < cnt; i++)
-    {
-        digitalWrite(LED_PIN, HIGH);
-        delay(50);
-        digitalWrite(LED_PIN, LOW);
-        delay(200);
-    }
-}
-
-void blink_slow(uint8_t cnt)
-{
-    delay(500);
-    for (int i = 0; i < cnt; i++)
-    {
-
-        digitalWrite(LED_PIN, HIGH);
-        delay(200);
-        digitalWrite(LED_PIN, LOW);
-        delay(100);
-    }
-}
-
+int loop0;
 
 void setup()
 {
@@ -109,8 +86,7 @@ void setup()
      * this code runs once
      */
 
-    pinMode(LED_PIN, OUTPUT);
-    blink(1);
+
 
 #ifdef ARDUINO_DAISY_SEED
     DaisySeed_Setup();
@@ -136,7 +112,7 @@ void setup()
 
 
 #ifdef BLINK_LED_PIN
-    Blink_Setup();
+   Blink_Setup();
 #endif
 
 #ifdef ESP8266
@@ -216,6 +192,7 @@ void setup()
     OrganPro_SetLeslCtrl(127);
 #else
     Organ_NoteOn(0, 60, 127);
+    Serial.println("Note On test");
     Organ_SetLeslCtrl(127);
     Organ_PercussionSet(CTRL_ROTARY_ACTIVE);
     Organ_PercussionSet(CTRL_ROTARY_ACTIVE);
@@ -226,7 +203,10 @@ void setup()
    Organ_PercussionSet(CTRL_ROTARY_ACTIVE);
    Organ_PercussionSet(CTRL_PERC_SWITCH);
    Organ_PercussionSet(CTRL_PERC_LOUD);
-   //Organ_PercussionSet(CTRL_PERC_POLY);
+   //Organ_PercussionSet(CTRL_PERC_POLY); //not good
+
+   setupMplex();
+
    
 #if (defined ADC_TO_MIDI_ENABLED) ||(defined MIDI_VIA_USB_ENABLED) || (defined OLED_OSC_DISP_ENABLED)
 #ifdef ESP32
@@ -259,18 +239,19 @@ void Core0TaskSetup()
 
 #ifdef OLED_OSC_DISP_ENABLED
     ScopeOled_Setup();
+    Serial.println("Scope setup complete");
 #endif
 
 #ifdef ADC_TO_MIDI_ENABLED
-    Serial.println
-    ("adc initialized");
+    Serial.println("adc initialized");
     AdcMul_Init();
 #endif
 
 #ifdef MIDI_VIA_USB_ENABLED
     UsbMidi_Setup();
 #endif
-
+    //-------------------inserting 7seg logic into this module
+    loop0 = 0;
 }
 
 void Core0TaskLoop()
@@ -278,16 +259,24 @@ void Core0TaskLoop()
     /*
      * put your loop stuff for core0 here
      */
+    
+#ifdef MIDI_VIA_USB_ENABLED
+      UsbMidi_Loop();
+#endif
+    
 #ifdef ADC_TO_MIDI_ENABLED
-    AdcMul_Process();
+    loop0++; 
+    if(loop0>67){
+      AdcMul_Process();
+      loop0=0;
+      
+    }
 #endif /* ADC_TO_MIDI_ENABLED */
 
-#ifdef MIDI_VIA_USB_ENABLED
-    UsbMidi_Loop();
-#endif
 
 #ifdef OLED_OSC_DISP_ENABLED
-    ScopeOled_Process();
+    if((loop0 % 11) == 0)
+      ScopeOled_Process();
 #endif
 }
 
@@ -333,12 +322,15 @@ void loop()
         loop_1Hz();
     }
 
+    if((loop_cnt_1hz % 25) == 0)
+       process7seg();
     /*
      * MIDI processing
      */
     Midi_Process();
 #ifdef MIDI_VIA_USB_ENABLED
-    UsbMidi_ProcessSync();
+    if(!getUsbPollLock())
+      UsbMidi_ProcessSync();
 #endif
 
     /*
@@ -386,9 +378,16 @@ void loop()
     Organ_Process_Buf(mono, SAMPLE_BUFFER_SIZE);
 #ifdef REVERB_ENABLED
     float mono_f[SAMPLE_BUFFER_SIZE];
+    
+    int scopeSize = SAMPLE_BUFFER_SIZE/4;
+    float mono_scope[scopeSize];
     for (int i = 0; i < SAMPLE_BUFFER_SIZE; i++)
     {
         mono_f[i] = mono[i];
+    }
+    for (int i = 0; i < scopeSize; i++)
+    {
+        mono_scope[i] = mono[i];
     }
     Reverb_Process(mono_f, SAMPLE_BUFFER_SIZE); /* post reverb */
     for (int i = 0; i < SAMPLE_BUFFER_SIZE; i++)
@@ -397,7 +396,14 @@ void loop()
     }
 #endif
     Audio_OutputMono(mono);
+    #ifdef OLED_OSC_DISP_ENABLED    
+    if((loop_cnt_1hz % 8) == 0){
+       process7seg();
+       ScopeOled_AddSamples(mono_scope, mono_scope, scopeSize);
+    }
+    #endif
 #endif
+
 }
 
 /*
@@ -405,8 +411,10 @@ void loop()
  */
 #ifdef MIDI_VIA_USB_ENABLED
 void App_UsbMidiShortMsgReceived(uint8_t *msg)
-{
+{   
+    #ifdef MIDI_TX2_PIN
     Midi_SendShortMessage(msg);
+    #endif
     Midi_HandleShortMsg(msg, 8);
 }
 #endif

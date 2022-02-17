@@ -68,9 +68,10 @@
 USB Usb;
 USBH_MIDI  Midi(&Usb);
 
-static void UsbMidi_Poll();
+//static void UsbMidi_Poll();
 
 uint16_t pid, vid;
+static bool usbPollLock = false;
 
 struct usbMidiMappingEntry_s
 {
@@ -92,6 +93,10 @@ struct usbMidiMapping_s
 };
 
 extern struct usbMidiMapping_s usbMidiMapping; /* definition in z_config.ino */
+
+bool getUsbPollLock(){
+  return usbPollLock;
+}
 
 void UsbMidi_Setup()
 {
@@ -179,7 +184,7 @@ void UsbMidi_Loop()
     }
     if (Midi)
     {
-        UsbMidi_Poll();
+        UsbMidi_Poll2();//UsbMidi_Poll();
     }
 }
 
@@ -203,7 +208,7 @@ void UsbMidi_HandleLiveMsg(uint8_t msg)
 inline
 void UsbMidi_HandleShortMsg(uint8_t *data)
 {
-    Serial.printf("short: %02x %02x %02x\n", data[0], data[1], data[2]);
+    //Serial.printf("short: %02x %02x %02x\n", data[0], data[1], data[2]);
 
     /* forward data to mapped function */
     for (int i = 0; i < usbMidiMapping.usbMidiMappingEntriesCount; i++)
@@ -320,6 +325,60 @@ static void UsbMidi_Poll()
             rcvd -= consumed;
         }
     }
+}
+
+static void UsbMidi_Poll2()
+{
+    uint8_t bufMidi[MIDI_EVENT_PACKET_SIZE];
+    uint16_t  rcvd;
+    uint8_t    countReads = 0;
+    usbPollLock = true;
+    memset(bufMidi, 0xCC, sizeof(bufMidi));
+
+    if (Midi.idVendor() != vid || Midi.idProduct() != pid)
+    {
+        vid = Midi.idVendor();
+        pid = Midi.idProduct();
+        Serial.printf("VID: %04x, PID: %04x\n", vid, pid);
+    }
+    //restart:
+    while(countReads < 12){
+      countReads++;
+      if (Midi.RecvData(&rcvd,  bufMidi) == 0)
+      {
+         
+         if (rcvd == 0)
+         {
+              /* Some devices sending a lot of empty messages */     
+              return;
+         } 
+  
+          uint8_t *midiData = &bufMidi[0];
+          while (rcvd > 2)
+          {
+              //usbPollSuccess = true;
+              
+              midiData = &midiData[1];
+              int consumed = MIDI_handleMsg(midiData, rcvd, (bufMidi[0] >> 4) & 0xF);
+              countReads = 0;
+              midiData = &midiData[consumed];
+              if (consumed > rcvd)
+              {
+                  Serial.printf("overrun!\n");
+                  return;
+              }
+              rcvd -= consumed;
+          }
+          
+      }
+      __asm__ __volatile__ ("nop\n\t");
+      __asm__ __volatile__ ("nop\n\t");
+      __asm__ __volatile__ ("nop\n\t");
+     // __asm__ __volatile__ ("nop\n\t");
+      //delayMicroseconds(1);   //  this was workable as the shortest possible delay but I went for a microsecond length//  
+   
+   }
+   usbPollLock = false;
 }
 
 void UsbMidi_SendRaw(uint8_t *buf, uint8_t cable)

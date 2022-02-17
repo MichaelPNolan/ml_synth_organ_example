@@ -53,7 +53,7 @@
 #endif
 
 
-#define NOTE_ON_AFTER_SETUP /* used to get a test tone without MIDI input. Can be deactivated */
+//#define NOTE_ON_AFTER_SETUP /* used to get a test tone without MIDI input. Can be deactivated */
 
 //#define USE_ML_SYNTH_PRO
 
@@ -102,25 +102,40 @@ SoftwareSerial Serial2(RXD2, TXD2);
 //#define BOARD_ML_V1 /* activate this when using the ML PCB V1 */
 //#define BOARD_ESP32_AUDIO_KIT_AC101 /* activate this when using the ESP32 Audio Kit v2.2 with the AC101 codec */
 //#define BOARD_ESP32_AUDIO_KIT_ES8388 /* activate this when using the ESP32 Audio Kit v2.2 with the ES8388 codec */
-#define BOARD_ESP32_DOIT /* activate this when using the DOIT ESP32 DEVKIT V1 board */
+//#define BOARD_ESP32_DOIT /* activate this when using the DOIT ESP32 DEVKIT V1 board
+
+
+#define I2S_BCLK_PIN    25
+#define I2S_WCLK_PIN    27
+#define I2S_DOUT_PIN    26
+/* I2S_DIN_PIN is not used here */
 
 //#define INPUT_TO_MIX /* use this to mix the input to the organ signal */
 
-#define LED_PIN     BLINK_LED_PIN
+//#define LED_PIN     17 
+//#define BLINK_LED_PIN  LED_PIN
 
-#define ADC_TO_MIDI_LOOKUP_SIZE 8 /* should match ADC_INPUTS */
-#define ADC_INPUTS  8
+
+#define ADC_TO_MIDI_LOOKUP_SIZE 8 // should match ADC_INPUTS 
+// all this is overridden and defined in board_esp32_doit.h so I commented that out 
+#define ADC_INPUTS  1
 #define ADC_MUL_S0_PIN  33
 #define ADC_MUL_S1_PIN  32
-#define ADC_MUL_S2_PIN  13
-#define ADC_MUL_SIG_PIN 12
+#define ADC_MUL_S2_PIN  17 //prev 13 allocated to 7seg red2   //17 is tx2 uart
+#define ADC_MUL_SIG_PIN 34// prev 12 allocated to 7seg red1
 
+#define RXD2 16
+#define TXD2 17
+#define MIDI_PORT2_ACTIVE
+#define MIDI_RX2_PIN RXD2
+#define OLED_OSC_DISP_ENABLED  
 #define REVERB_ENABLED /* add simple reverb */
 
 #define MAX_DELAY   (SAMPLE_RATE/4)
 
-/* use this to display a scope on the oled display */
-//#define OLED_OSC_DISP_ENABLED
+/* use this to display a scope on the oled display - oscilliscope enabled by Markus License library <ml_scope.h>
+*/
+#define OLED_OSC_DISP_ENABLED
 
 /*
  * include the board configuration
@@ -143,9 +158,9 @@ SoftwareSerial Serial2(RXD2, TXD2);
 
 #define SAMPLE_RATE 44100
 #define SAMPLE_SIZE_16BIT
-#define SAMPLE_BUFFER_SIZE  48
+#define SAMPLE_BUFFER_SIZE  24 //48
 
-//#define MIDI_VIA_USB_ENABLED /* activate this when connected to the USB host breakout board */
+#define MIDI_VIA_USB_ENABLED /* activate this when connected to the USB host breakout board */
 
 #endif /* ESP32 */
 
