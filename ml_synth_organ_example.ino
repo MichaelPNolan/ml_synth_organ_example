@@ -61,6 +61,13 @@
  */
 #ifdef USE_ML_SYNTH_PRO
 #include <ml_organ_pro.h>
+#define CTRL_PERC_SWITCH    0
+#define CTRL_PERC_SPEED     1
+#define CTRL_PERC_NOTE      2
+#define CTRL_PERC_LOUD      3
+#define CTRL_PERC_POLY      4
+#define CTRL_INTR_FEEDBACK  5
+#define CTRL_ROTARY_ACTIVE  6
 #else
 #include <ml_organ.h>
 #endif
@@ -112,7 +119,7 @@ void setup()
 
 
 #ifdef BLINK_LED_PIN
-   Blink_Setup();
+   //Blink_Setup();
 #endif
 
 #ifdef ESP8266
@@ -198,13 +205,19 @@ void setup()
     Organ_PercussionSet(CTRL_ROTARY_ACTIVE);
 #endif
 #endif
-
+// initial setting of percussion on
+#ifdef USE_ML_SYNTH_PRO
+   OrganPro_PercussionSet(CTRL_ROTARY_ACTIVE);
+   OrganPro_PercussionSet(CTRL_ROTARY_ACTIVE);
+   OrganPro_PercussionSet(CTRL_PERC_SWITCH);
+   OrganPro_PercussionSet(CTRL_PERC_LOUD);
+#else
    Organ_PercussionSet(CTRL_ROTARY_ACTIVE);
    Organ_PercussionSet(CTRL_ROTARY_ACTIVE);
    Organ_PercussionSet(CTRL_PERC_SWITCH);
    Organ_PercussionSet(CTRL_PERC_LOUD);
    //Organ_PercussionSet(CTRL_PERC_POLY); //not good
-
+#endif
    setupMplex();
 
    
@@ -217,12 +230,17 @@ void setup()
 #endif
 }
 
+
+
+
+
 #ifdef ESP32
 /*
  * Core 0
  */
 /* this is used to add a task to core 0 */
 TaskHandle_t Core0TaskHnd;
+
 
 inline
 void Core0TaskInit()
@@ -261,6 +279,7 @@ void Core0TaskLoop()
      */
     
 #ifdef MIDI_VIA_USB_ENABLED
+   if(!usbFailCheck())
       UsbMidi_Loop();
 #endif
     
@@ -272,7 +291,8 @@ void Core0TaskLoop()
       
     }
 #endif /* ADC_TO_MIDI_ENABLED */
-
+   process7seg();
+   processAlpha();
 
 #ifdef OLED_OSC_DISP_ENABLED
     if((loop0 % 11) == 0)
@@ -303,7 +323,7 @@ void loop_1Hz()
     CyclePrint();
 #endif
 #ifdef BLINK_LED_PIN
-    Blink_Process();
+   // Blink_Process();
 #endif
 }
 
@@ -322,14 +342,14 @@ void loop()
         loop_1Hz();
     }
 
-    if((loop_cnt_1hz % 25) == 0)
-       process7seg();
+  //  if((loop_cnt_1hz % 30) == 0)
+   //    process7seg();
     /*
      * MIDI processing
      */
     Midi_Process();
 #ifdef MIDI_VIA_USB_ENABLED
-    if(!getUsbPollLock())
+    if(!usbFailCheck())
       UsbMidi_ProcessSync();
 #endif
 
@@ -379,16 +399,21 @@ void loop()
 #ifdef REVERB_ENABLED
     float mono_f[SAMPLE_BUFFER_SIZE];
     
-    int scopeSize = SAMPLE_BUFFER_SIZE/4;
-    float mono_scope[scopeSize];
+
     for (int i = 0; i < SAMPLE_BUFFER_SIZE; i++)
     {
         mono_f[i] = mono[i];
     }
+    #ifdef OLED_OSC_DISP_ENABLED //added hack by Michael N for testing the Oled Scope module from the Synth library
+    
+    int scopeSize = SAMPLE_BUFFER_SIZE/4;
+    float mono_scope[scopeSize];
     for (int i = 0; i < scopeSize; i++)
     {
         mono_scope[i] = mono[i];
     }
+    #endif
+    
     Reverb_Process(mono_f, SAMPLE_BUFFER_SIZE); /* post reverb */
     for (int i = 0; i < SAMPLE_BUFFER_SIZE; i++)
     {
@@ -396,12 +421,12 @@ void loop()
     }
 #endif
     Audio_OutputMono(mono);
-    #ifdef OLED_OSC_DISP_ENABLED    
-    if((loop_cnt_1hz % 8) == 0){
-       process7seg();
+       
+    #ifdef OLED_OSC_DISP_ENABLED 
        ScopeOled_AddSamples(mono_scope, mono_scope, scopeSize);
-    }
     #endif
+    
+
 #endif
 
 }
@@ -439,7 +464,17 @@ inline void Organ_SetDrawbarInv(uint8_t id, uint8_t value)
 #ifdef USE_ML_SYNTH_PRO
     OrganPro_SetDrawbar(id, value);
 #else
+    
+    if(id == 1){
+      Organ_SetDrawbar(0, value);
+      textAlphaDisplay("Bar0+1");
+    } else
+      textAlphaDisplay("Bar"+String(id));
+    
     Organ_SetDrawbar(id, value);
+    setDigitsColor(id%8);
+    setDigits(value);
+    
 #endif
 }
 
@@ -487,7 +522,12 @@ inline void Organ_PercussionViaPitch(uint8_t unused __attribute__((unused)), uin
       pitchedOn++;
       if(pitchedOn>12){
         pitchedOn=0;
+        #ifdef USE_ML_SYNTH_PRO
+        OrganPro_PercussionSet(CTRL_PERC_SPEED);
+        #else
         Organ_PercussionSet(CTRL_PERC_SPEED);
+        #endif
+        
         Serial.println("speed toggle");
       }
     } else
@@ -496,18 +536,33 @@ inline void Organ_PercussionViaPitch(uint8_t unused __attribute__((unused)), uin
         if(pitchedOn<-12)
           pitchedOn=0;
     } else if(value == 254){
+       #ifdef USE_ML_SYNTH_PRO
+       OrganPro_PercussionSet(CTRL_INTR_FEEDBACK);
+       #else
        Organ_PercussionSet(CTRL_INTR_FEEDBACK);
+       #endif
+       
        Serial.println("feedback toggle");
     }
   
   if(!percSwitch){       
     if(pitchedOn >2){
+        #ifdef USE_ML_SYNTH_PRO
+        OrganPro_PercussionSet(CTRL_PERC_SWITCH);
+        #else
         Organ_PercussionSet(CTRL_PERC_SWITCH);
+        #endif
+        
         percSwitch = true;
         Serial.println("perc toggle");
     }
     if(pitchedOn < -2){
+        #ifdef USE_ML_SYNTH_PRO
+        OrganPro_PercussionSet(CTRL_PERC_LOUD);
+        #else
         Organ_PercussionSet(CTRL_PERC_LOUD);
+        #endif
+
         percSwitch = true;  //this means no more changes until pitch bender returns to mid point
         Serial.println("loud toggle");
     }

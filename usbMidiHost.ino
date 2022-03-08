@@ -55,7 +55,7 @@
 /*
  * Connections:
  *  CS: IO5
- *  INT: IO17 (not used)
+ *  INT: IO35 (not used)
  *  SCK: IO18
  *  MISO: IO19
  *  MOSI: IO23
@@ -64,6 +64,7 @@
 #include <usbh_midi.h>
 #include <usbhub.h>
 #include <SPI.h>
+    //This is experimental for this branch of the github ESP32max0.1
 
 USB Usb;
 USBH_MIDI  Midi(&Usb);
@@ -71,7 +72,8 @@ USBH_MIDI  Midi(&Usb);
 //static void UsbMidi_Poll();
 
 uint16_t pid, vid;
-static bool usbPollLock = false;
+
+static bool usbFail = false;
 
 struct usbMidiMappingEntry_s
 {
@@ -93,9 +95,23 @@ struct usbMidiMapping_s
 };
 
 extern struct usbMidiMapping_s usbMidiMapping; /* definition in z_config.ino */
+hw_timer_t * timer = NULL;
+portMUX_TYPE timerMux = portMUX_INITIALIZER_UNLOCKED;
 
-bool getUsbPollLock(){
-  return usbPollLock;
+void IRAM_ATTR onTimer(){
+    uint8_t bufMidi[MIDI_EVENT_PACKET_SIZE];
+    uint16_t  rcvd;
+    portENTER_CRITICAL_ISR(&timerMux);
+
+   // if (Midi.RecvData(&rcvd,  bufMidi) == 0)
+   // {
+       Serial.println("midi data");//UsbMidi_Poll();
+   // }
+    portEXIT_CRITICAL_ISR(&timerMux);
+}
+
+bool usbFailCheck(){
+  return usbFail;
 }
 
 void UsbMidi_Setup()
@@ -106,13 +122,23 @@ void UsbMidi_Setup()
     if (Usb.Init() == -1)
     {
         Serial.println("Usb init failed!\n");
-        while (1); //halt
+        //while (1); //halt
+        usbFail = true;
     }//if (Usb.Init() == -1...
     delay(200);
-    Serial.println("Usb init done!\n");
+   // timer = timerBegin(0, 80, true);  //timer 0, MWDT clock period - 12.5ns * TIMGn_Tx_WDT_CLK_PRESCALE (12.5 * 80 = 1000) = 1uS (true is decreasing, false increasing timer)
+    //timerAttachInterrupt(timer, &onTimer,true); //edge not level triggered
+    //timerAlarmWrite(timer,1000000, true); //1 million micro second = 1s autoreload = true
+   // timerAlarmEnable(timer);
+   if(!usbFail)
+     Serial.println("Usb init done!\n");
+    
 }
 
 uint8_t lastState = 0xFF;
+
+
+
 
 void UsbMidi_Loop()
 {
@@ -332,7 +358,7 @@ static void UsbMidi_Poll2()
     uint8_t bufMidi[MIDI_EVENT_PACKET_SIZE];
     uint16_t  rcvd;
     uint8_t    countReads = 0;
-    usbPollLock = true;
+
     memset(bufMidi, 0xCC, sizeof(bufMidi));
 
     if (Midi.idVendor() != vid || Midi.idProduct() != pid)
@@ -342,7 +368,7 @@ static void UsbMidi_Poll2()
         Serial.printf("VID: %04x, PID: %04x\n", vid, pid);
     }
     //restart:
-    while(countReads < 12){
+    while(countReads < 40){
       countReads++;
       if (Midi.RecvData(&rcvd,  bufMidi) == 0)
       {
@@ -378,7 +404,6 @@ static void UsbMidi_Poll2()
       //delayMicroseconds(1);   //  this was workable as the shortest possible delay but I went for a microsecond length//  
    
    }
-   usbPollLock = false;
 }
 
 void UsbMidi_SendRaw(uint8_t *buf, uint8_t cable)

@@ -46,7 +46,7 @@
 #ifndef CONFIG_H_
 #define CONFIG_H_
 #define ESP32
-#define ADC_TO_MIDI_ENABLED
+//#define ADC_TO_MIDI_ENABLED
 
 #ifdef __CDT_PARSER__
 #include <cdt.h>
@@ -123,19 +123,20 @@ SoftwareSerial Serial2(RXD2, TXD2);
 #define ADC_MUL_S1_PIN  32
 #define ADC_MUL_S2_PIN  17 //prev 13 allocated to 7seg red2   //17 is tx2 uart
 #define ADC_MUL_SIG_PIN 34// prev 12 allocated to 7seg red1
+//#define USB_MIDI_INTERRUPT  17  //experimental for branch ESP32max0.1
 
 #define RXD2 16
 #define TXD2 17
 #define MIDI_PORT2_ACTIVE
 #define MIDI_RX2_PIN RXD2
-#define OLED_OSC_DISP_ENABLED  
+  
 #define REVERB_ENABLED /* add simple reverb */
 
 #define MAX_DELAY   (SAMPLE_RATE/4)
 
 /* use this to display a scope on the oled display - oscilliscope enabled by Markus License library <ml_scope.h>
 */
-#define OLED_OSC_DISP_ENABLED
+//#define OLED_OSC_DISP_ENABLED
 
 /*
  * include the board configuration
