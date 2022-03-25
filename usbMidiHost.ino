@@ -416,6 +416,7 @@ void UsbMidi_SendControlChange(uint8_t channel, uint8_t data1, uint8_t data2)
 {
     uint8_t shortBuf[3] = {(uint8_t)(0xB0U + (channel & 0x0FU)), data1, data2};
     Serial2.write(shortBuf, 3);
+    Serial.println("UsbControlChange: "+String(channel)+" "+String(data1));
 }
 
 #endif /* MIDI_VIA_USB_ENABLED */

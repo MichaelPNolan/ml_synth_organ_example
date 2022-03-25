@@ -17,6 +17,9 @@
 #define ADC_MUL_S1_PIN  32
 #define ADC_MUL_S2_PIN  17 (change from 13)  //MIDI OUT
 #define ADC_MUL_SIG_PIN 34 (change from 12) //34 tested ok for reading analogue
+#define ADC_MUL_S1_PIN  DATAPIN  //shared with DATAPIN used for 7seg display that can be disabled
+#define ADC_MUL_S2_PIN  LATCHPIN //shared with LATCHPIN used for 7seg display that can be disabled
+#define ADC_MUL_S3_PIN  CLOCKPIN //shared with CLOCKPIN used for 7seg display that can be disabled
 #define I2S_BCLK_PIN    25
 #define I2S_WCLK_PIN    27
 #define I2S_DOUT_PIN    26
@@ -60,9 +63,8 @@ GPIO 6-11 connected to SPI flash memory not recommended
              //discovered 34-39 are input online wtf
 
 //#define DEBUG_SHIFT   //uncomment to use print binary debug info                 
-#define latchPin      4  //green tested with UNO 5v and tested with ESP32
-#define clockPin      2  //yellow
-#define dataPin       15  //blue
+// ensure that LATCHPIN, CLOCKPIN and DATAPIN are defined in the config.h
+
 // The cathode side of the digits on the ACD8143
 // Steps - Choose PWM channel (esp32) from 0 to 15, set frequency 5000hz for LED,
 //         duty cycle resolution 1 to 16 bits [8], which GPIO with ledcAttachPin(GPIO, channel)
@@ -77,7 +79,7 @@ GPIO 6-11 connected to SPI flash memory not recommended
 #define monoDigitThree 64  //just set lights on for digit 3 which is not RGB
 
 typedef  enum{ red, green, blue, yellow, purple, teal, white } digitColor;
-#define enableShiftRegister 14
+
 
 digitColor  digitOneColor,digitTwoColor;
 uint8_t segValue[3]; //2 digits of an RGB 7 seg display [0] is msb and [1] is lsb [2] is the 3rd digit which is red only
@@ -121,9 +123,9 @@ void textAlphaDisplay(String text){
 }
 
 void setupMplex() {
-  pinMode(latchPin, OUTPUT);
-  pinMode(clockPin, OUTPUT);  // 74HC595 Pins
-  pinMode(dataPin, OUTPUT);
+  pinMode(LATCHPIN, OUTPUT);
+  pinMode(CLOCKPIN, OUTPUT);  // 74HC595 Pins
+  pinMode(DATAPIN, OUTPUT);
   pinMode(redDigitOne, OUTPUT);
   pinMode(redDigitTwo, OUTPUT);
   pinMode(enableShiftRegister, OUTPUT);
@@ -192,13 +194,13 @@ void shiftOut2(uint8_t dataP, uint8_t clockP, bool mostSig, uint8_t command)  //
            command = command >> 1;
        }
        
-       digitalWrite(dataPin, output);
-       digitalWrite(clockPin, true);
+       digitalWrite(DATAPIN, output);
+       digitalWrite(CLOCKPIN, true);
        //delayMicroseconds(1);
        //delay(1);
        __asm__ __volatile__ ("nop\n\t");
        __asm__ __volatile__ ("nop\n\t");
-       digitalWrite(clockPin, false);
+       digitalWrite(CLOCKPIN, false);
        __asm__ __volatile__ ("nop\n\t");
        __asm__ __volatile__ ("nop\n\t");//really fast
        //delayMicroseconds(1); /faster
@@ -337,16 +339,16 @@ void process7seg() {
   //uint8_t shiftMod = setCathodeColours(digit);
  
   
-  digitalWrite(latchPin, LOW);
-  digitalWrite(clockPin, LOW);
+  digitalWrite(LATCHPIN, LOW);
+  digitalWrite(CLOCKPIN, LOW);
    //I setup "AND" gates for latch and clock so if this is HIGH they will work and if low they will be blocked low
   // shift out the bits of 7segValue to the 74HC595
-  shiftOut2(dataPin, clockPin, MSBFIRST, segCol[digit]); 
-  shiftOut2(dataPin, clockPin, MSBFIRST, segValue[digit]);//+segBank
+  shiftOut2(DATAPIN, CLOCKPIN, MSBFIRST, segCol[digit]); 
+  shiftOut2(DATAPIN, CLOCKPIN, MSBFIRST, segValue[digit]);//+segBank
 
   
   //set latch pin high- this sends data to outputs so the LEDs will light up
-  digitalWrite(latchPin, HIGH);
+  digitalWrite(LATCHPIN, HIGH);
   //delayMicroseconds(1); // this may be un-needed as it only takes 5-6 nanoseconds to open the gate 
   digitalWrite(enableShiftRegister,LOW);
  

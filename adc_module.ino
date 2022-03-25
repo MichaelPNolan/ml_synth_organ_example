@@ -23,10 +23,10 @@
 #ifdef __CDT_PARSER__
 #include <cdt.h>
 #endif
-//#define ADC_DEBUG_CHANNEL0_DATA
+//#define ADC_DEBUG_CHANNEL9_DATA
 //#define ADC_MCP_CTRL_ENABLED  //i'm not using
 //#define ADC_DYNAMIC_RANGE
-
+#define ADC_PRINT_MESSAGES
 
 #ifdef ADC_TO_MIDI_ENABLED
 
@@ -58,7 +58,7 @@ uint8_t lastSendVal[ADC_TO_MIDI_LOOKUP_SIZE];  /* define ADC_TO_MIDI_LOOKUP_SIZE
 #endif
 
 //#define ADC_DYNAMIC_RANGE
-//#define ADC_DEBUG_CHANNEL0_DATA
+#define ADC_DEBUG_CHANNEL0_DATA
 
 static float adcChannelValue[ADC_INPUTS];
 
@@ -72,14 +72,18 @@ void AdcMul_Init(void)
     memset(lastSendVal, 0xFF, sizeof(lastSendVal));
 
     analogReadResolution(9);  //was 9 bits
-    analogSetAttenuation(ADC_11db);   //ADC_6db
+    analogSetAttenuation(ADC_6db);   //ADC_6db
 #if 0
     analogSetCycles(1);
 #endif
     analogSetClockDiv(1);
 
     adcAttachPin(ADC_MUL_SIG_PIN);
-
+   //these pins are shared with the pins used for the mplex595 library 
+   //there is an enable pin 14 for 2 pins that must be pulled high in that library LATCH/CLOCK
+   //if it is disabled then it will be low and could be hooked to the enable of the
+   //16 channel ADC multiplexer breakout so this is disabled when that library is in use  digitalWrite(enableShiftRegister,LOW);
+   
 #ifndef ADC_MCP_CTRL_ENABLED
     pinMode(ADC_MUL_S0_PIN, OUTPUT);
     Serial.println("ADCpin0: "+String(ADC_MUL_S0_PIN));
@@ -93,9 +97,13 @@ void AdcMul_Init(void)
 #endif
 #if ADC_INPUTS > 8
     pinMode(ADC_MUL_S3_PIN, OUTPUT);
+    Serial.println("ADCpin2: "+String(ADC_MUL_S3_PIN));
+#else
+    pinMode(ADC_MUL_S3_PIN, OUTPUT);
+    digitalWrite(ADC_MUL_S3_PIN,LOW);
 #endif
 #endif
-
+    Serial.println("Number of ADC Mplexer Inputs Configured: "+String(ADC_INPUTS));
 }
 
 void AdcMul_Process(void)
@@ -118,6 +126,7 @@ void AdcMul_Process(void)
 #ifdef ADC_MCP_CTRL_ENABLED
         MCP23_SelAdc(j);
 #else
+        digitalWrite(enableShiftRegister,LOW); // this prevents messing up the LED display while using shared pins
         digitalWrite(ADC_MUL_S0_PIN, ((j & (1 << 0)) > 0) ? HIGH : LOW);
 #if ADC_INPUTS > 2
         digitalWrite(ADC_MUL_S1_PIN, ((j & (1 << 1)) > 0) ? HIGH : LOW);
@@ -130,7 +139,7 @@ void AdcMul_Process(void)
 #endif
 
         /* give some time for transition */
-        delay(1);
+        delayMicroseconds(1);//delay(1);
 #endif
 
         readAccu = 0;
@@ -217,18 +226,19 @@ void AdcMul_Process(void)
                         if (adcToMidiMapping.callback != NULL)
                         {
                             adcToMidiMapping.callback(adcToMidiLookUp[idx].ch, adcToMidiLookUp[idx].cc, midiValueU7);
-                           // Serial.println(midiValueU7);
-                           if(idx==0){
-                             setDigitsColor(midiValueU7/20);
-                             setDigits(midiValueU7);
-                           }
+
+                            #ifdef  ADC_PRINT_MESSAGES
+                            Serial.print("Channel: "+String(j)+" Val: ");
+                            Serial.println(midiValueU7);
+                            #endif
+
                         }
                         // Midi_ControlChange(adcToMidiLookUp[idx].ch, adcToMidiLookUp[idx].cc, midiValueU7);
                         lastSendVal[idx] = midiValueU7;
                     }
                 }
-#ifdef ADC_DEBUG_CHANNEL0_DATA
-                if (j == 0)
+#ifdef ADC_DEBUG_CHANNEL9_DATA
+                if (j == 8)
                 {
                     float adcValFrac = (adcChannelValue[j] * 127.999) - midiValueU7;
                     Serial.printf("adcChannelValue[j]: %f -> %0.3f -> %0.3f-> %d, %0.3f\n", readAccu, readValF, adcChannelValue[j], midiValueU7, adcValFrac);

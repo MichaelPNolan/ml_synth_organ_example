@@ -453,6 +453,7 @@ inline void Organ_PercSetMidi(uint8_t setting, uint8_t value)
     {
 #ifdef USE_ML_SYNTH_PRO
         OrganPro_PercussionSet(setting);
+
 #else
         Organ_PercussionSet(setting);
 #endif
@@ -472,7 +473,7 @@ inline void Organ_SetDrawbarInv(uint8_t id, uint8_t value)
       textAlphaDisplay("Bar"+String(id));
     
     Organ_SetDrawbar(id, value);
-    setDigitsColor(id%8);
+    setDigitsColor(id%7);
     setDigits(value);
     
 #endif
@@ -506,6 +507,35 @@ inline void Organ_ModulationWheel(uint8_t unused __attribute__((unused)), uint8_
 #endif
 }
 
+inline void Organ_ButtonSelect(uint8_t unused __attribute__((unused)), uint8_t value)
+//for use of a series of buttons in a resistor ladder that are read by the ADC module
+{
+  Serial.println("Button: "+String(value));
+  switch(value){
+    case 0 ... 16: //voltages of no button press
+      break;
+    case 17 ... 30:
+      Organ_PercussionSet(CTRL_PERC_SWITCH);
+      textAlphaDisplay("Percussion");
+      break;
+     case 39 ... 48:
+       textAlphaDisplay("But5");
+       break;
+     case 57 ... 68:
+       textAlphaDisplay("But4");
+       break;
+     case 73 ... 88:
+       textAlphaDisplay("But3");
+       break;
+     case 90 ... 105:
+       textAlphaDisplay("But2");
+       break;
+     case 108 ... 127:
+       textAlphaDisplay("But1");
+       break;
+
+  } 
+}
 
 inline void Organ_PercussionViaPitch(uint8_t unused __attribute__((unused)), uint8_t value)
 {

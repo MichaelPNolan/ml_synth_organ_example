@@ -54,14 +54,15 @@ audioKitButtonCb audioKitButtonCallback = NULL;
 #ifdef ADC_TO_MIDI_ENABLED
 struct adc_to_midi_s adcToMidiLookUp[ADC_TO_MIDI_LOOKUP_SIZE] =
 {
-    {0, 0x0a}, //3rd "draw"bar
-    {0, 0x0b}, //4th bar
-    {0, 0x0c}, //5th bar
-    {0, 0x0d}, //6th bar
-    {0, 0x0e}, //7th bar
-    {0, 0x0f}, //8th bar
-    {0, 0x10}, //9th bar
-    {0, 0x11}, //Organ_SetCtrl  (there is only one and its the same as Organ_SetLeslieSpeedNorm for now
+    {0x0, 0x0a}, //3rd "draw"bar
+    {0x0, 0x0b}, //4th bar
+    {0x0, 0x0c}, //5th bar
+    {0x0, 0x0d}, //6th bar
+    {0x0, 0x0e}, //7th bar
+    {0x0, 0x0f}, //8th bar
+    {0x0, 0x10}, //9th bar
+    {0x0, 0x11}, //Organ_SetCtrl  (there is only one and its the same as Organ_SetLeslieSpeedNorm for now
+    {0x1, 0x01}, //button
 };
 
 
@@ -69,12 +70,12 @@ struct adc_to_midi_mapping_s adcToMidiMapping =
 {
     adcToMidiLookUp,
     sizeof(adcToMidiLookUp) / sizeof(adcToMidiLookUp[0]),
-    //Midi_ControlChange,
-#ifdef MIDI_VIA_USB_ENABLED
+    Midi_ControlChange,
+/*#ifdef MIDI_VIA_USB_ENABLED
     UsbMidi_SendControlChange,
 #else
     Midi_ControlChange,
-#endif
+#endif */
 };
 
 #endif
@@ -111,7 +112,8 @@ struct adc_to_midi_mapping_s adcToMidiMapping =
     { 0x0, 0x18, "R13", NULL, Organ_SetCtrl, 5},
     { 0x0, 0x19, "R14", NULL, Organ_SetCtrl, 6},
     { 0x0, 0x1a, "R15", NULL, Organ_SetCtrl, 7 },
-    { 0x0, 0x1b, "R15", NULL, Organ_SetCtrl, 8},
+    { 0x0, 0x1b, "R16", NULL, Organ_SetCtrl, 8},
+    { 0x1, 0x01, "Button", NULL, Organ_ButtonSelect, 8},
 
     // Central slider 
    // { 0x0, 0x13, "H1", NULL, NULL, 0},

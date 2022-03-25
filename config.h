@@ -46,7 +46,7 @@
 #ifndef CONFIG_H_
 #define CONFIG_H_
 #define ESP32
-//#define ADC_TO_MIDI_ENABLED
+#define ADC_TO_MIDI_ENABLED
 
 #ifdef __CDT_PARSER__
 #include <cdt.h>
@@ -114,14 +114,20 @@ SoftwareSerial Serial2(RXD2, TXD2);
 
 //#define LED_PIN     17 
 //#define BLINK_LED_PIN  LED_PIN
+// These were originally in my mplex595 module but pins may be shared
+#define enableShiftRegister 14 // uses and gates to disable LATCHPIN and CLOCKPIN when low
+#define LATCHPIN            4  //green tested with UNO 5v and tested with ESP32
+#define CLOCKPIN            2  //yellow
+#define DATAPIN             15  //blue
 
-
-#define ADC_TO_MIDI_LOOKUP_SIZE 8 // should match ADC_INPUTS 
+#define ADC_TO_MIDI_LOOKUP_SIZE 9 // should match ADC_INPUTS 
 // all this is overridden and defined in board_esp32_doit.h so I commented that out 
-#define ADC_INPUTS  1
+#define ADC_INPUTS  9
 #define ADC_MUL_S0_PIN  33
-#define ADC_MUL_S1_PIN  32
-#define ADC_MUL_S2_PIN  17 //prev 13 allocated to 7seg red2   //17 is tx2 uart
+#define ADC_MUL_S1_PIN  DATAPIN  //shared with DATAPIN used for 7seg display that can be disabled
+#define ADC_MUL_S2_PIN  LATCHPIN //shared with LATCHPIN used for 7seg display that can be disabled
+#define ADC_MUL_S3_PIN  CLOCKPIN //shared with CLOCKPIN used for 7seg display that can be disabled
+#define ADC_MUL_ENABLE     //not in original but I might use it to turn off while 7seg comms is ongoing
 #define ADC_MUL_SIG_PIN 34// prev 12 allocated to 7seg red1
 //#define USB_MIDI_INTERRUPT  17  //experimental for branch ESP32max0.1
 
